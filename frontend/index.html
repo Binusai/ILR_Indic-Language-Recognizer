@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ILR — Indic Language Recognizer</title>
+    <meta name="description"
+        content="A multi-layer system for identifying Indic languages using script detection, transformer models, and phoneme analysis.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="bg-grad var1"></div>
+    <div class="bg-grad var2"></div>
+
+    <main class="container">
+        <div>
+
+            <header class="header">
+                <h1 class="title">ILR</h1>
+                <h2 class="subtitle">Indic Language Recognizer</h2>
+                <div class="badge">Multi-Layer Language Identification System</div>
+                <p class="description">A multi-layer system for identifying Indic languages using script detection,
+                    transformer models, and phoneme analysis.</p>
+            </header>
+
+            <section class="input-section glass-panel">
+                <div class="input-wrapper">
+                    <textarea id="textInput" class="text-input" placeholder="Type a sentence in any language..."
+                        dir="auto"></textarea>
+                </div>
+                <!-- User hint -->
+                <p class="input-hint">
+                    💡 For best accuracy, enter text in its native script. Romanized input written using English letters
+                    will be automatically converted before prediction.
+                </p>
+                <div class="action-buttons">
+                    <button class="btn btn-mic" id="micBtn" title="Speak to input text">
+                        <svg class="mic-icon" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                            <line x1="12" y1="19" x2="12" y2="22" />
+                        </svg>
+                        <div class="mic-glow"></div>
+                        <span class="btn-text">Microphone</span>
+                    </button>
+                    <button class="btn btn-predict" id="predictBtn">
+                        <span class="btn-text">Predict Language</span>
+                        <div class="spinner hidden" id="spinner"></div>
+                    </button>
+                </div>
+                <div id="micStatus" class="mic-status hidden">Listening...</div>
+            </section>
+
+            <!-- Results -->
+            <section class="results-section hidden" id="resultsSection">
+                <div class="cards-grid">
+
+                    <!-- Final Prediction -->
+                    <div class="result-card final-card glass-panel pop-in" id="finalCard" style="--delay: 0.05s">
+                        <h3>Final Prediction</h3>
+                        <div class="primary-result">
+                            <div class="lang-name" id="finalLang">--</div>
+                            <div class="confidence">
+                                <span class="prob-num" id="finalProb">0%</span>
+                                <span class="conf-badge" id="finalConfLabel">--</span>
+                            </div>
+                        </div>
+                        <!-- Romanized mode indicator -->
+                        <div id="romanizedBadge" class="romanized-badge hidden">
+                            🔤 Romanized input detected — converted via
+                            <strong id="transScriptName"></strong> transliteration
+                        </div>
+                    </div>
+
+                    <!-- Layer 1: Script Detection -->
+                    <div class="result-card layer1-card glass-panel pop-in" style="--delay: 0.1s">
+                        <h3><span class="layer-tag">Layer 1</span> Script Detection</h3>
+                        <div class="layer-detail">
+                            <div class="layer-meta">
+                                <span class="meta-label">Detected Script</span>
+                                <span class="meta-val" id="l1Script">--</span>
+                            </div>
+                            <div class="layer-meta">
+                                <span class="meta-label">Candidate Languages</span>
+                                <span class="meta-val" id="l1Candidates">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layer 2: Transformer -->
+                    <div class="result-card layer2-card glass-panel pop-in" style="--delay: 0.2s">
+                        <h3><span class="layer-tag tag-blue">Layer 2</span> Transformer Model</h3>
+                        <div class="bars-container" id="l2Bars"></div>
+                    </div>
+
+                    <!-- Layer 3: Phoneme -->
+                    <div class="result-card layer3-card glass-panel pop-in" style="--delay: 0.3s">
+                        <h3><span class="layer-tag tag-violet">Layer 3</span> Phoneme Analysis</h3>
+                        <div class="bars-container" id="l3Bars"></div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ============================================================
+                 EXAMPLE INPUTS SECTION
+            ============================================================= -->
+            <section class="examples-section glass-panel" id="examplesSection">
+                <h2 class="examples-heading">
+                    <span class="examples-icon">📝</span> Example Inputs
+                    <span class="examples-sub">Click any sentence to predict</span>
+                </h2>
+
+                <!-- DEVANAGARI -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:var(--accent-blue)"></span>
+                        Devanagari
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Hindi"
+                            data-text="आज मौसम बहुत अच्छा है और मुझे बाहर घूमने का मन कर रहा है।">
+                            <span class="chip-lang">Hindi</span>
+                            <span class="chip-text">आज मौसम बहुत अच्छा है…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Marathi"
+                            data-text="आज हवामान खूप छान आहे, बाहेर फिरायला जायची इच्छा होत आहे.">
+                            <span class="chip-lang">Marathi</span>
+                            <span class="chip-text">आज हवामान खूप छान आहे…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Nepali"
+                            data-text="आज मौसम धेरै राम्रो छ, बाहिर घुम्न जान मन लागेको छ।">
+                            <span class="chip-lang">Nepali</span>
+                            <span class="chip-text">आज मौसम धेरै राम्रो छ…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Bhojpuri"
+                            data-text="हम आज बाजार जा रहल बानी आ कुछ सामान खरीदे के बा।">
+                            <span class="chip-lang">Bhojpuri</span>
+                            <span class="chip-text">हम आज बाजार जा रहल बानी…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BENGALI -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#f472b6"></span>
+                        Bengali Script
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Bengali"
+                            data-text="আজ আবহাওয়া খুব সুন্দর, বাইরে হাঁটতে যেতে ইচ্ছে করছে।">
+                            <span class="chip-lang">Bengali</span>
+                            <span class="chip-text">আজ আবহাওয়া খুব সুন্দর…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Assamese"
+                            data-text="আজিৰ বতৰটো বহুত ভাল, বাহিৰলৈ যাবলৈ মন গৈছে।">
+                            <span class="chip-lang">Assamese</span>
+                            <span class="chip-text">আজিৰ বতৰটো বহুত ভাল…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GURMUKHI -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#fb923c"></span>
+                        Gurmukhi
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Punjabi"
+                            data-text="ਅੱਜ ਮੌਸਮ ਬਹੁਤ ਵਧੀਆ ਹੈ, ਬਾਹਰ ਘੁੰਮਣ ਨੂੰ ਮਨ ਕਰ ਰਿਹਾ ਹੈ।">
+                            <span class="chip-lang">Punjabi</span>
+                            <span class="chip-text">ਅੱਜ ਮੌਸਮ ਬਹੁਤ ਵਧੀਆ ਹੈ…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GUJARATI -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#34d399"></span>
+                        Gujarati
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Gujarati"
+                            data-text="આજે હવામાન બહુ સરસ છે, બહાર ફરવા જવાનું મન થાય છે।">
+                            <span class="chip-lang">Gujarati</span>
+                            <span class="chip-text">આજે હવામાન બહુ સરસ છે…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAMIL -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#facc15"></span>
+                        Tamil
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Tamil"
+                            data-text="இன்று வானிலை மிகவும் நன்றாக உள்ளது, வெளியே செல்ல வேண்டும் போல உள்ளது.">
+                            <span class="chip-lang">Tamil</span>
+                            <span class="chip-text">இன்று வானிலை மிகவும் நன்றாக…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TELUGU -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#60a5fa"></span>
+                        Telugu
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Telugu"
+                            data-text="ఈ రోజు వాతావరణం చాలా బాగుంది, బయటికి వెళ్లాలని అనిపిస్తోంది.">
+                            <span class="chip-lang">Telugu</span>
+                            <span class="chip-text">ఈ రోజు వాతావరణం చాలా బాగుంది…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KANNADA -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#c084fc"></span>
+                        Kannada
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Kannada"
+                            data-text="ಇಂದು ಹವಾಮಾನ ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ, ಹೊರಗೆ ಹೋಗಬೇಕು ಅನಿಸುತ್ತಿದೆ.">
+                            <span class="chip-lang">Kannada</span>
+                            <span class="chip-text">ಇಂದು ಹವಾಮಾನ ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MALAYALAM -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#2dd4bf"></span>
+                        Malayalam
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Malayalam"
+                            data-text="ഇന്ന് കാലാവസ്ഥ വളരെ നല്ലതാണ്, പുറത്തേക്ക് പോകണം എന്ന് തോന്നുന്നു.">
+                            <span class="chip-lang">Malayalam</span>
+                            <span class="chip-text">ഇന്ന് കാലാവസ്ഥ വളരെ നല്ലതാണ്…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ODIA -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#f87171"></span>
+                        Odia
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Odia"
+                            data-text="ଆଜି ପାଗ ବହୁତ ଭଲ ଅଛି, ବାହାରକୁ ଘୁରିବାକୁ ମନ ହେଉଛି।">
+                            <span class="chip-lang">Odia</span>
+                            <span class="chip-text">ଆଜି ପାଗ ବହୁତ ଭଲ ଅଛି…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ARABIC / URDU -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#a3e635"></span>
+                        Arabic Script
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="Urdu"
+                            data-text="آج موسم بہت اچھا ہے اور باہر جانے کا دل کر رہا ہے۔">
+                            <span class="chip-lang">Urdu</span>
+                            <span class="chip-text" dir="rtl">آج موسم بہت اچھا ہے…</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ENGLISH (Romanized) -->
+                <div class="script-group">
+                    <div class="script-label">
+                        <span class="script-dot" style="background:#94a3b8"></span>
+                        English / Romanized
+                    </div>
+                    <div class="example-chips">
+                        <button class="example-chip" data-lang="English"
+                            data-text="The weather is very pleasant today, and I feel like going out for a walk.">
+                            <span class="chip-lang">English</span>
+                            <span class="chip-text">The weather is very pleasant today…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Hindi (Romanized)"
+                            data-text="aaj mausam bahut accha hai aur mujhe bahar ghoomne ka man kar raha hai">
+                            <span class="chip-lang">Hindi (Roman)</span>
+                            <span class="chip-text">aaj mausam bahut accha hai…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Bengali (Romanized)"
+                            data-text="aaj abohaowa khub sundor, baire hatate jete icche korche">
+                            <span class="chip-lang">Bengali (Roman)</span>
+                            <span class="chip-text">aaj abohaowa khub sundor…</span>
+                        </button>
+                        <button class="example-chip" data-lang="Tamil (Romanized)"
+                            data-text="indru vaanam mikavum nandraga ulladu veliye sella vendum pol ulladu">
+                            <span class="chip-lang">Tamil (Roman)</span>
+                            <span class="chip-text">indru vaanam mikavum nandraga…</span>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
