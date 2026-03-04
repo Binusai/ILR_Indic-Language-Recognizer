@@ -1,0 +1,36 @@
+{
+  "label2id": {
+    "Assamese": 0,
+    "Bengali": 1,
+    "Bhojpuri": 2,
+    "English": 3,
+    "Gujarati": 4,
+    "Hindi": 5,
+    "Kannada": 6,
+    "Kashmiri": 7,
+    "Malayalam": 8,
+    "Marathi": 9,
+    "Nepali": 10,
+    "Odia": 11,
+    "Punjabi": 12,
+    "Tamil": 13,
+    "Telugu": 14
+  },
+  "id2label": {
+    "0": "Assamese",
+    "1": "Bengali",
+    "2": "Bhojpuri",
+    "3": "English",
+    "4": "Gujarati",
+    "5": "Hindi",
+    "6": "Kannada",
+    "7": "Kashmiri",
+    "8": "Malayalam",
+    "9": "Marathi",
+    "10": "Nepali",
+    "11": "Odia",
+    "12": "Punjabi",
+    "13": "Tamil",
+    "14": "Telugu"
+  }
+}
